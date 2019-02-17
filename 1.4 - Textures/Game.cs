@@ -9,15 +9,15 @@ namespace LearnOpenGL_TK
     class Game : GameWindow
     {
         //Because we're adding a texture, we modify the vertex array to include texture coordinates.
-        //Texture coordinates range from 0.0 to 1.0, with (0.0, 0.0) representing the bottom left, and (1.0, 1.0) representing the top right
+        //Texture coordinates range from 0.0 to 1.0, with (0.0, 0.0) representing the top left, and (1.0, 1.0) representing the bottom right
         //The new layout is three floats to create a vertex, then two floats to create the coordinates
         float[] vertices =
         {
             //Position          Texture coordinates
-             0.5f,  0.5f, 0.0f, 1.0f, 1.0f, // top right
-             0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
-            -0.5f,  0.5f, 0.0f, 0.0f, 1.0f  // top left 
+             0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // top right
+             0.5f, -0.5f, 0.0f, 1.0f, 1.0f, // bottom right
+            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom left
+            -0.5f,  0.5f, 0.0f, 0.0f, 0.0f  // top left 
         };
 
         uint[] indices =

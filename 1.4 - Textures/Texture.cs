@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using OpenTK.Graphics.OpenGL4;
-
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace LearnOpenGL_TK
 {
@@ -20,47 +17,14 @@ namespace LearnOpenGL_TK
             //Generate handle
             Handle = GL.GenTexture();
 
-
             //Bind the handle
             Use();
 
-
             //Load the image
-            Image<Rgba32> image = Image.Load(path);
+            Bitmap bitmap = new Bitmap(path);
 
-            //ImageSharp loads from the top-left pixel, whereas OpenGL loads from the bottom-left, causing the texture to be flipped vertically.
-            //This will correct that, making the texture display properly.
-            image.Mutate(x => x.Flip(FlipMode.Vertical));
-
-            //Get an array of the pixels, in ImageSharp's internal format.
-            Rgba32[] tempPixels = image.GetPixelSpan().ToArray();
-
-            //Convert ImageSharp's format into a byte array, so we can use it with OpenGL.
-            List<byte> pixels = new List<byte>();
-
-            foreach (Rgba32 p in tempPixels)
-            {
-                pixels.Add(p.R);
-                pixels.Add(p.G);
-                pixels.Add(p.B);
-                pixels.Add(p.A);
-            }
-
-            //Now that have our pixels, we need to set a few settings.
-            //If you don't include these settings, OpenTK will refuse to draw the texture.
-
-            //First, we set the min and mag filter. These are used for when the texture is scaled down and up, respectively.
-            //Here, we use Linear for both. This means that OpenGL will try to blend pixels, meaning that textures scaled too far will look blurred.
-            //You could also use (amongst other options) Nearest, which just grabs the nearest pixel, which makes the texture look pixelated if scaled too far.
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-
-
-            //Now, set the wrapping mode. S is for the X axis, and T is for the Y axis.
-            //We set this to Repeat so that textures will repeat when wrapped. Not demonstrated here since the texture coordinates exactly match
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-
+            BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
             //Now that our pixels have been loaded and our settings are prepared, it's time to generate a texture. We do this with GL.TexImage2D
             //Arguments:
@@ -73,8 +37,23 @@ namespace LearnOpenGL_TK
             //  The format of the pixels, explained above.
             //  Data type of the pixels.
             //  And finally, the actual pixels.
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, pixels.ToArray());
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
+                OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+            bitmap.UnlockBits(data);
 
+            //Now that have our pixels, we need to set a few settings.
+            //If you don't include these settings, OpenTK will refuse to draw the texture.
+
+            //First, we set the min and mag filter. These are used for when the texture is scaled down and up, respectively.
+            //Here, we use Linear for both. This means that OpenGL will try to blend pixels, meaning that textures scaled too far will look blurred.
+            //You could also use (amongst other options) Nearest, which just grabs the nearest pixel, which makes the texture look pixelated if scaled too far.
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+            //Now, set the wrapping mode. S is for the X axis, and T is for the Y axis.
+            //We set this to Repeat so that textures will repeat when wrapped. Not demonstrated here since the texture coordinates exactly match
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
             //Next, generate mipmaps.
             //Mipmaps are smaller copies of the texture, scaled down. Each mipmap level is half the size of the previous one
